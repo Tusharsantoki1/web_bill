@@ -1,0 +1,21 @@
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  text-align: center;
+}
+.muted { color: var(--muted); margin: 0; }
+.emptyTitle { font-size: 16px; font-weight: 700; margin: 0; }
+.error { color: var(--danger); font-size: 13px; margin: 4px 0 0; }
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

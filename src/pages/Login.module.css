@@ -1,0 +1,37 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: linear-gradient(135deg, var(--navy-900), var(--navy-700));
+  padding: 20px;
+}
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+}
+.name { font-weight: 800; font-size: 16px; }
+.sub { color: var(--muted); font-size: 13px; }
+.title { font-size: 22px; font-weight: 800; }
+.hint { color: var(--muted); margin: 6px 0 22px; }
+.submit { width: 100%; margin-top: 6px; padding: 12px; }
+.footer { color: rgba(255, 255, 255, 0.7); font-size: 12px; }

@@ -1,0 +1,27 @@
+.noPad { padding: 0; }
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+.searchInput { flex: 1; border: none; outline: none; font-size: 14px; color: var(--text); background: transparent; }
+.actions { display: flex; gap: 6px; justify-content: flex-end; }
+.iconBtn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconBtn:hover { color: var(--primary); border-color: var(--primary); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.formActions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+
+@media (max-width: 600px) { .row2 { grid-template-columns: 1fr; } }

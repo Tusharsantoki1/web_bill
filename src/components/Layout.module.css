@@ -1,0 +1,20 @@
+.shell { min-height: 100vh; }
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.content { padding: 24px; flex: 1; }
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 45;
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .main { margin-left: 0; }
+  .overlay { display: block; }
+}

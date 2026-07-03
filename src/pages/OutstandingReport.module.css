@@ -1,0 +1,25 @@
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.noPad { padding: 0; }
+.overdue { color: var(--danger); font-weight: 600; }
+.actions { display: flex; gap: 6px; justify-content: flex-end; }
+.iconBtn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconBtn:hover { color: var(--primary); border-color: var(--primary); }
+
+@media (max-width: 600px) {
+  .kpis { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,101 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.details {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.detailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.detailRow:last-child { border-bottom: none; }
+.detailLabel { font-size: 13px; font-weight: 600; color: var(--muted); }
+.detailValue { font-size: 14px; font-weight: 600; color: var(--text); text-align: right; }
+.outstanding { font-size: 18px; font-weight: 800; color: var(--danger); }
+
+.phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+.noPhone { color: var(--danger); font-weight: 600; font-size: 13px; }
+
+.preview { display: flex; flex-direction: column; gap: 16px; }
+
+.chat {
+  background: #e5ddd5;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border-radius: var(--radius);
+  padding: 16px;
+  min-height: 120px;
+  display: flex;
+}
+.bubble {
+  position: relative;
+  background: #dcf8c6;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 10px 12px 6px;
+  max-width: 85%;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+  margin-left: auto;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid #dcf8c6;
+  border-right: 8px solid transparent;
+}
+.bubbleText {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.bubbleMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #667781;
+}
+
+.warn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #fde68a;
+}
+
+.sendRow { display: flex; justify-content: flex-end; }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+}

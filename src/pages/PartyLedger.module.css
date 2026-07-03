@@ -1,0 +1,56 @@
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.summaryCard { margin-bottom: 20px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  background: var(--bg);
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.paid { color: var(--success); }
+
+.outstanding {
+  color: var(--danger);
+  font-weight: 900;
+}
+
+.noPad { padding: 0; }
+
+.creditCell {
+  color: var(--success);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stats { grid-template-columns: 1fr; }
+}

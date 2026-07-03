@@ -1,0 +1,36 @@
+.formCard { max-width: 640px; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.formActions { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #bbf7d0;
+  background: var(--tint-green);
+  color: var(--success);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+.success strong { font-weight: 700; }
+
+.successLink {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--success);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.successLink:hover { opacity: 0.8; }
+
+@media (max-width: 600px) {
+  .row2 { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,80 @@
+.noPad { padding: 0; }
+.section { margin-top: 20px; }
+
+/* Quick-nav cards */
+.navGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.navCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  text-align: left;
+  transition: box-shadow 0.15s, transform 0.1s;
+}
+.navCard:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.navIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nav_blue { background: var(--tint-blue); color: var(--primary); }
+.nav_purple { background: var(--tint-purple); color: var(--purple); }
+.navText { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.navLabel { font-size: 15px; font-weight: 700; color: var(--text); }
+.navDesc { font-size: 13px; color: var(--muted); }
+.navChevron { color: var(--muted); flex-shrink: 0; }
+
+/* Filter row */
+.filterRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.filterField { display: flex; flex-direction: column; gap: 6px; }
+.filterLabel { font-size: 13px; font-weight: 600; color: var(--muted); }
+.dateInput {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+}
+.dateInput:focus { border-color: var(--primary); }
+
+/* Summary row */
+.summaryRow {
+  display: flex;
+  gap: 32px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.summaryItem { display: flex; flex-direction: column; gap: 4px; }
+.summaryLabel { font-size: 13px; font-weight: 600; color: var(--muted); }
+.summaryValue { font-size: 20px; font-weight: 800; color: var(--text); }
+.pos { color: var(--success); }
+.neg { color: var(--danger); }
+
+.errorPad { padding: 12px 16px 0; }
+.overdueDays { color: var(--danger); font-weight: 600; }
+
+@media (max-width: 600px) {
+  .navGrid { grid-template-columns: 1fr; }
+}
