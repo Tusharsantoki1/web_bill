@@ -2,27 +2,38 @@ import React, { useState } from 'react';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { AuthAPI } from '../api/endpoints';
 import { getErrorMessage } from '../api/client';
 import { Button, Field, Input, ErrorText } from '../components/ui';
-import styles from './Login.module.css';
+import styles from './Register.module.css';
 
-export default function Login() {
-  const { user, signIn } = useAuth();
+export default function Register() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  
+  const [formData, setFormData] = useState({
+    company_name: '',
+    admin_name: '',
+    email: '',
+    password: '',
+  });
+  
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   if (user) return <Navigate to="/" replace />;
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   async function onSubmit(e) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await signIn(email, password);
-      navigate('/', { replace: true });
+      await AuthAPI.register(formData);
+      navigate('/login', { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -40,14 +51,33 @@ export default function Login() {
             <div className={styles.sub}>Ughrani Management</div>
           </div>
         </div>
-        <h1 className={styles.title}>Sign in</h1>
-        <p className={styles.hint}>Welcome back. Please log in to your company account.</p>
+        <h1 className={styles.title}>Register</h1>
+        <p className={styles.hint}>Create a new company account.</p>
         <form onSubmit={onSubmit}>
+          <Field label="Company Name">
+            <Input
+              name="company_name"
+              value={formData.company_name}
+              onChange={handleChange}
+              placeholder="Your Company Pvt Ltd"
+              required
+            />
+          </Field>
+          <Field label="Admin Name">
+            <Input
+              name="admin_name"
+              value={formData.admin_name}
+              onChange={handleChange}
+              placeholder="John Doe"
+              required
+            />
+          </Field>
           <Field label="Email">
             <Input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="you@company.com"
               autoComplete="username"
               required
@@ -56,20 +86,22 @@ export default function Login() {
           <Field label="Password">
             <Input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               placeholder="••••••••"
-              autoComplete="current-password"
+              autoComplete="new-password"
+              minLength={8}
               required
             />
           </Field>
           <ErrorText>{error}</ErrorText>
           <Button type="submit" loading={loading} className={styles.submit}>
-            Sign in
+            Register
           </Button>
         </form>
-        <div className={styles.registerLink}>
-          Don't have an account? <Link to="/register">Register</Link>
+        <div className={styles.loginLink}>
+          Already have an account? <Link to="/login">Sign in</Link>
         </div>
       </div>
       <p className={styles.footer}>© 2026 Pride Consultancy · Ughrani Management Software</p>

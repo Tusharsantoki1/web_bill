@@ -35,7 +35,17 @@
 .hint { color: var(--muted); margin: 6px 0 22px; }
 .submit { width: 100%; margin-top: 6px; padding: 12px; }
 .footer { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
- 
-.registerLink { margin-top: 16px; text-align: center; font-size: 14px; color: var(--muted); }
-.registerLink a { color: var(--primary); font-weight: 600; text-decoration: none; }
-.registerLink a:hover { text-decoration: underline; }
+.loginLink {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.loginLink a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.loginLink a:hover {
+  text-decoration: underline;
+}

@@ -24,10 +24,9 @@ export default function Sidebar({ open, onClose }) {
   return (
     <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
       <div className={styles.brand}>
-        <div className={styles.logo}>PC</div>
+        <div className={styles.logo}>UM</div>
         <div>
-          <div className={styles.brandName}>Pride Consultancy</div>
-          <div className={styles.brandSub}>Ughrani Management</div>
+          <div className={styles.brandName}>Ughrani Management</div>
         </div>
       </div>
 
