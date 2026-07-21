@@ -1,0 +1,29 @@
+.sheetWrap {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  /* The bill is 210mm x 152.4mm; keep it scrollable on narrow screens rather
+     than letting it squash out of proportion. */
+  overflow: auto;
+}
+
+.frame {
+  display: block;
+  width: 794px; /* 210mm at 96dpi */
+  height: 576px; /* 152.4mm at 96dpi */
+  margin: 0 auto;
+  border: 0;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .sheetWrap { padding: 6px; }
+}

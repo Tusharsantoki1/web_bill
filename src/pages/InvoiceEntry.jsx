@@ -7,11 +7,15 @@ import {
   Button, Card, Field, Input, Textarea, PageHeader, PartySelect, ErrorText,
 } from '../components/ui';
 import Icon from '../components/Icon';
+import BillPreview from '../components/BillPreview';
+import SubscriptionGate from '../components/SubscriptionGate';
+import { useAuth } from '../auth/AuthContext';
 import { money, todayStr } from '../utils/format';
 import styles from './InvoiceEntry.module.css';
 
 export default function InvoiceEntry() {
   const navigate = useNavigate();
+  const { canCreateBills } = useAuth();
   const [party, setParty] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(todayStr());
@@ -21,12 +25,18 @@ export default function InvoiceEntry() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [previewId, setPreviewId] = useState(null);
 
   async function onSubmit(e) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
+    // Belt and braces: the form is not rendered without an active
+    // subscription, and the backend returns 402 regardless.
+    if (!canCreateBills) {
+      return setError('Billing is disabled — your subscription is not active.');
+    }
     if (!party) return setError('Please select a party');
     const amt = Number(amount);
     if (!amount || Number.isNaN(amt) || amt <= 0) return setError('Amount must be greater than 0');
@@ -57,6 +67,11 @@ export default function InvoiceEntry() {
     <div>
       <PageHeader title="Invoice Entry" subtitle="Record an outstanding bill" />
 
+      {/* Renders an explanatory banner and hides the form when billing is
+          unavailable, whether that is an expired plan or a read-only role. */}
+      <SubscriptionGate />
+
+      {canCreateBills && (
       <Card className={styles.formCard}>
         <form onSubmit={onSubmit}>
           {success && (
@@ -65,6 +80,13 @@ export default function InvoiceEntry() {
               <span>
                 Recorded <strong>{success.invoice_number}</strong> for {money(success.grand_total)}.
               </span>
+              <button
+                type="button"
+                className={styles.successLink}
+                onClick={() => setPreviewId(success.id)}
+              >
+                Preview bill
+              </button>
               <button
                 type="button"
                 className={styles.successLink}
@@ -127,12 +149,19 @@ export default function InvoiceEntry() {
           <ErrorText>{error}</ErrorText>
 
           <div className={styles.formActions}>
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving} disabled={!canCreateBills}>
               <Icon name="plus" size={16} /> Record Bill
             </Button>
           </div>
         </form>
       </Card>
+      )}
+
+      <BillPreview
+        invoiceId={previewId}
+        open={Boolean(previewId)}
+        onClose={() => setPreviewId(null)}
+      />
     </div>
   );
 }

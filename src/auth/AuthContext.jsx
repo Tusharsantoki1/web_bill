@@ -5,9 +5,14 @@ import { getAccessToken, setOnAuthFail, setTokens } from '../api/client';
 
 const AuthContext = createContext(undefined);
 
+// Roles that may create or edit data; viewers are read-only. Mirrors
+// COMPANY_EDITOR_ROLES in the backend's utils/deps.py.
+const EDITOR_ROLES = ['company_admin', 'company_staff', 'collection_executive'];
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [company, setCompany] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [initializing, setInitializing] = useState(true);
 
   async function loadCompany() {
@@ -19,10 +24,22 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function loadSubscription() {
+    try {
+      const s = await CompanyAPI.subscription();
+      setSubscription(s);
+    } catch {
+      // Treat an unreadable subscription as inactive rather than assuming
+      // access — the backend is the real gate either way.
+      setSubscription(null);
+    }
+  }
+
   function clearSession() {
     setTokens(null, null);
     setUser(null);
     setCompany(null);
+    setSubscription(null);
   }
 
   useEffect(() => {
@@ -32,7 +49,7 @@ export function AuthProvider({ children }) {
         if (getAccessToken()) {
           const me = await AuthAPI.me();
           setUser(me);
-          await loadCompany();
+          await Promise.all([loadCompany(), loadSubscription()]);
         }
       } catch {
         clearSession();
@@ -46,7 +63,7 @@ export function AuthProvider({ children }) {
     const res = await AuthAPI.login(email.trim(), password);
     setTokens(res.access_token, res.refresh_token);
     setUser(res.user);
-    await loadCompany();
+    await Promise.all([loadCompany(), loadSubscription()]);
     return res.user;
   }
 
@@ -54,7 +71,7 @@ export function AuthProvider({ children }) {
     const res = await AuthAPI.register(payload);
     setTokens(res.access_token, res.refresh_token);
     setUser(res.user);
-    await loadCompany();
+    await Promise.all([loadCompany(), loadSubscription()]);
     return res.user;
   }
 
@@ -62,9 +79,29 @@ export function AuthProvider({ children }) {
     clearSession();
   }
 
+  // A bill can only be created with an active subscription AND an editing
+  // role. This mirrors require_billing_access on the backend, which stays the
+  // real enforcement point — this only keeps the UI honest.
+  const isSubscribed = Boolean(subscription?.is_active);
+  const canEdit = Boolean(user && EDITOR_ROLES.includes(user.role));
+  const canCreateBills = isSubscribed && canEdit;
+
   const value = useMemo(
-    () => ({ user, company, initializing, signIn, signUp, signOut, refreshCompany: loadCompany }),
-    [user, company, initializing]
+    () => ({
+      user,
+      company,
+      subscription,
+      isSubscribed,
+      canEdit,
+      canCreateBills,
+      initializing,
+      signIn,
+      signUp,
+      signOut,
+      refreshCompany: loadCompany,
+      refreshSubscription: loadSubscription,
+    }),
+    [user, company, subscription, isSubscribed, canEdit, canCreateBills, initializing]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

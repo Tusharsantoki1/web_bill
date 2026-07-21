@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { CompanyAPI } from '../api/endpoints';
 import { getErrorMessage } from '../api/client';
@@ -12,9 +12,23 @@ import styles from './Settings.module.css';
 const EMPTY = {
   name: '', invoice_prefix: '',
   address: '', city: '', state: '', state_code: '', pincode: '', gstin: '', pan: '',
-  bank_name: '', bank_account_no: '', bank_ifsc: '', upi_number: '', default_note: '',
+  bank_name: '', bank_account_no: '', bank_ifsc: '', upi_number: '', upi_id: '', default_note: '',
   default_credit_days: '', financial_year_start: '', financial_year_end: '',
 };
+
+const BRANDING_SLOTS = [
+  { key: 'logo_base64', label: 'Logo', hint: 'Printed on the invoice header.' },
+  { key: 'payment_qr_base64', label: 'Payment QR', hint: 'Customers scan this to pay.' },
+  { key: 'signature_base64', label: 'Signature', hint: 'Printed above the signatory line.' },
+  { key: 'stamp_base64', label: 'Stamp', hint: 'Company seal printed on the bill.' },
+];
+
+const EMPTY_BRANDING = {
+  logo_base64: '', payment_qr_base64: '', signature_base64: '', stamp_base64: '',
+};
+
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
 function seed(c) {
   if (!c) return EMPTY;
@@ -32,11 +46,22 @@ function seed(c) {
     bank_account_no: c.bank_account_no || '',
     bank_ifsc: c.bank_ifsc || '',
     upi_number: c.upi_number || '',
+    upi_id: c.upi_id || '',
     default_note: c.default_note || '',
     default_credit_days:
       c.default_credit_days || c.default_credit_days === 0 ? String(c.default_credit_days) : '',
     financial_year_start: c.financial_year_start || '',
     financial_year_end: c.financial_year_end || '',
+  };
+}
+
+function seedBranding(c) {
+  if (!c) return EMPTY_BRANDING;
+  return {
+    logo_base64: c.logo_base64 || '',
+    payment_qr_base64: c.payment_qr_base64 || '',
+    signature_base64: c.signature_base64 || '',
+    stamp_base64: c.stamp_base64 || '',
   };
 }
 
@@ -46,6 +71,11 @@ const orUndef = (v) => {
   return t === '' ? undefined : t;
 };
 
+// Stored images may be a full data URI or bare base64 — <img> needs a URI.
+const imgSrc = (v) => (v.startsWith('data:') ? v : `data:image/png;base64,${v}`);
+
+const sizeMb = (bytes) => (bytes / 1024 / 1024).toFixed(1);
+
 export default function Settings() {
   const { company, refreshCompany } = useAuth();
   const [form, setForm] = useState(() => seed(company));
@@ -54,15 +84,35 @@ export default function Settings() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
+  // Branding saves separately from the profile, so it keeps its own state.
+  // `brandingBase` is what the server holds, so we can send only what changed.
+  const [branding, setBranding] = useState(() => seedBranding(company));
+  const [brandingBase, setBrandingBase] = useState(() => seedBranding(company));
+  const [brandingSaving, setBrandingSaving] = useState(false);
+  const [brandingError, setBrandingError] = useState(null);
+  const [brandingSuccess, setBrandingSuccess] = useState(false);
+  const [slotErrors, setSlotErrors] = useState({});
+  const fileRefs = useRef({});
+  const brandingDirty = useRef(false);
+
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
     setSuccess(false);
   };
 
   useEffect(() => {
+    // Don't stomp on images the user picked but hasn't saved yet.
+    const applyBranding = (c) => {
+      if (brandingDirty.current) return;
+      const b = seedBranding(c);
+      setBranding(b);
+      setBrandingBase(b);
+    };
+
     // Prefer the company from auth context; fall back to a direct fetch.
     if (company) {
       setForm(seed(company));
+      applyBranding(company);
       setLoading(false);
       return;
     }
@@ -70,7 +120,9 @@ export default function Settings() {
     setLoading(true);
     CompanyAPI.get()
       .then((c) => {
-        if (alive) setForm(seed(c));
+        if (!alive) return;
+        setForm(seed(c));
+        applyBranding(c);
       })
       .catch((err) => {
         if (alive) setError(getErrorMessage(err));
@@ -106,6 +158,7 @@ export default function Settings() {
         bank_account_no: orUndef(form.bank_account_no),
         bank_ifsc: orUndef(form.bank_ifsc),
         upi_number: orUndef(form.upi_number),
+        upi_id: orUndef(form.upi_id),
         default_note: orUndef(form.default_note),
         default_credit_days:
           form.default_credit_days.trim() === '' ? undefined : Number(form.default_credit_days),
@@ -119,6 +172,65 @@ export default function Settings() {
       setError(getErrorMessage(err));
     } finally {
       setSaving(false);
+    }
+  }
+
+  const onPickImage = (key) => (e) => {
+    const file = e.target.files && e.target.files[0];
+    // Reset the input so selecting the same file again re-triggers onChange.
+    if (fileRefs.current[key]) fileRefs.current[key].value = '';
+    if (!file) return;
+
+    setBrandingSuccess(false);
+    const fail = (msg) => setSlotErrors((s) => ({ ...s, [key]: msg }));
+
+    if (!IMAGE_TYPES.includes(file.type)) {
+      return fail('Unsupported format. Use a PNG, JPG, GIF or WebP image.');
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      return fail(`That image is ${sizeMb(file.size)} MB. Please use one under 2 MB.`);
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      brandingDirty.current = true;
+      setSlotErrors((s) => ({ ...s, [key]: null }));
+      setBranding((b) => ({ ...b, [key]: String(reader.result) }));
+    };
+    reader.onerror = () => fail('Could not read that file. Please try another one.');
+    reader.readAsDataURL(file);
+  };
+
+  const onRemoveImage = (key) => () => {
+    brandingDirty.current = true;
+    setBranding((b) => ({ ...b, [key]: '' }));
+    setSlotErrors((s) => ({ ...s, [key]: null }));
+    setBrandingSuccess(false);
+  };
+
+  const changedBrandingKeys = BRANDING_SLOTS
+    .map(({ key }) => key)
+    .filter((key) => branding[key] !== brandingBase[key]);
+
+  async function onSaveBranding() {
+    setBrandingError(null);
+    setBrandingSuccess(false);
+    setBrandingSaving(true);
+    try {
+      // Send only what changed; "" tells the API to clear that image.
+      const payload = {};
+      changedBrandingKeys.forEach((key) => {
+        payload[key] = branding[key];
+      });
+      await CompanyAPI.updateBranding(payload);
+      setBrandingBase(branding);
+      brandingDirty.current = false;
+      await refreshCompany();
+      setBrandingSuccess(true);
+    } catch (err) {
+      setBrandingError(getErrorMessage(err));
+    } finally {
+      setBrandingSaving(false);
     }
   }
 
@@ -210,6 +322,14 @@ export default function Settings() {
               <Input value={form.upi_number} onChange={set('upi_number')} placeholder="9876543210" />
             </Field>
           </div>
+          <Field label="UPI ID" hint="The VPA printed under the payment QR on the bill.">
+            <Input
+              value={form.upi_id}
+              onChange={set('upi_id')}
+              placeholder="name@okhdfcbank"
+              maxLength={100}
+            />
+          </Field>
           <Field label="Default invoice note" hint="Shown on invoices and reminders.">
             <Textarea
               value={form.default_note}
@@ -218,6 +338,77 @@ export default function Settings() {
               placeholder="Thank you for your business."
             />
           </Field>
+        </Card>
+
+        <Card
+          title="Branding & Payment QR"
+          bodyClassName={styles.brandingBody}
+          action={
+            <Button
+              size="sm"
+              onClick={onSaveBranding}
+              loading={brandingSaving}
+              disabled={changedBrandingKeys.length === 0}
+            >
+              Save branding
+            </Button>
+          }
+        >
+          <div className={styles.slots}>
+            {BRANDING_SLOTS.map(({ key, label, hint }) => (
+              <div key={key} className={styles.slot}>
+                <div className={styles.slotHead}>
+                  <span className={styles.slotLabel}>{label}</span>
+                  {branding[key] && (
+                    <button type="button" className={styles.remove} onClick={onRemoveImage(key)}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <div className={styles.thumb}>
+                  {branding[key] ? (
+                    <img src={imgSrc(branding[key])} alt={label} className={styles.thumbImg} />
+                  ) : (
+                    <span className={styles.placeholder}>
+                      <Icon name="image" size={16} /> No image
+                    </span>
+                  )}
+                </div>
+
+                <input
+                  ref={(el) => { fileRefs.current[key] = el; }}
+                  type="file"
+                  accept={IMAGE_TYPES.join(',')}
+                  className={styles.fileInput}
+                  onChange={onPickImage(key)}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileRefs.current[key] && fileRefs.current[key].click()}
+                >
+                  <Icon name="image" size={16} /> Choose file
+                </Button>
+
+                {slotErrors[key] ? (
+                  <span className={styles.slotError}>{slotErrors[key]}</span>
+                ) : (
+                  <span className={styles.slotHint}>{hint}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.footer}>
+            <ErrorText>{brandingError}</ErrorText>
+            {brandingSuccess && !brandingError && (
+              <span className={styles.success}>
+                <Icon name="book" size={16} /> Branding saved successfully.
+              </span>
+            )}
+            <span className={styles.hint}>PNG, JPG, GIF or WebP · up to 2 MB each.</span>
+          </div>
         </Card>
 
         <Card title="Financial Year & Credit">

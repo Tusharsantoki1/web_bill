@@ -71,6 +71,31 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Same as getErrorMessage, but first unpacks a Blob error body.
+ *
+ * Requests made with responseType 'blob' get a Blob back even for a 4xx/5xx,
+ * so the JSON {detail: ...} is unreadable synchronously and every failure would
+ * otherwise surface as a generic network message.
+ */
+export async function getErrorMessageAsync(error) {
+  const data = error?.response?.data;
+  if (data instanceof Blob) {
+    try {
+      const text = await data.text();
+      try {
+        const parsed = JSON.parse(text);
+        error.response.data = parsed;
+      } catch {
+        if (text.trim()) return text.trim().slice(0, 300);
+      }
+    } catch {
+      // Fall through to the synchronous path.
+    }
+  }
+  return getErrorMessage(error);
+}
+
 export function getErrorMessage(error) {
   const detail = error?.response?.data?.detail;
   if (typeof detail === 'string') return detail;

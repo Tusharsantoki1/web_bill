@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import InvoiceEntry from './pages/InvoiceEntry';
+import Bills from './pages/Bills';
 import PaymentEntry from './pages/PaymentEntry';
 import OutstandingReport from './pages/OutstandingReport';
 import AgingReport from './pages/AgingReport';
@@ -35,6 +36,7 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/invoice-entry" element={<InvoiceEntry />} />
+        <Route path="/bills" element={<Bills />} />
         <Route path="/payment-entry" element={<PaymentEntry />} />
         <Route path="/outstanding" element={<OutstandingReport />} />
         <Route path="/aging" element={<AgingReport />} />

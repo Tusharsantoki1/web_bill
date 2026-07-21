@@ -1,4 +1,4 @@
-import { api, API_BASE_URL } from './client';
+import { api } from './client';
 
 export const AuthAPI = {
   login: (email, password) =>
@@ -44,7 +44,18 @@ export const InvoiceAPI = {
   createOutstanding: (payload) => api.post('/invoices/outstanding', payload).then((r) => r.data),
   recordPayment: (id, payload) => api.post(`/invoices/${id}/payment`, payload).then((r) => r.data),
   remove: (id) => api.delete(`/invoices/${id}`).then((r) => r.data),
-  pdfUrl: (id) => `${API_BASE_URL}/invoices/${id}/pdf`,
+
+  // The PDF route needs the Bearer token, so it cannot be used as a plain
+  // <iframe src> / window.open URL — fetch it through axios and hand back an
+  // object URL the caller is responsible for revoking.
+  pdfObjectUrl: (id) =>
+    api
+      .get(`/invoices/${id}/pdf`, { responseType: 'blob' })
+      .then((r) => URL.createObjectURL(new Blob([r.data], { type: 'application/pdf' }))),
+
+  // Server-rendered HTML of the bill — the same template the PDF is made from.
+  previewHtml: (id) =>
+    api.get(`/invoices/${id}/preview`, { responseType: 'text' }).then((r) => r.data),
 };
 
 export const PaymentAPI = {
@@ -77,7 +88,8 @@ export const ReportAPI = {
 };
 
 export const WhatsAppAPI = {
-  reminder: (partyId) => api.get(`/whatsapp/reminder/${partyId}`).then((r) => r.data),
+  reminder: (partyId, lang = 'en') =>
+    api.get(`/whatsapp/reminder/${partyId}`, { params: { lang } }).then((r) => r.data),
 };
 
 export const DashboardAPI = {
